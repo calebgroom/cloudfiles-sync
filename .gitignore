@@ -3,3 +3,5 @@
 *.komodoproject
 *.log
 .idea
+env/
+

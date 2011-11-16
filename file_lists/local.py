@@ -2,14 +2,16 @@ from file_list import FileList
 import os
 from log import Logging
 from datetime import datetime
+import re
 _log = Logging().log
 
 class DirectoryList(FileList):
-    def __init__(self,directory,follow=True,md5=True):
+    def __init__(self,directory,follow=True,md5=True,exclude_patterns=None):
         self.directory = directory
         self.follow = follow
         self.file_list = {}
         self.md5 = md5
+        self.exclude_patterns = exclude_patterns or []
         self.updateList()
     def updateList(self):
         for root,dirs,files in os.walk(self.directory,followlinks=self.follow):
@@ -21,6 +23,15 @@ class DirectoryList(FileList):
                     clean_root = ''
                 else:
                     clean_root += '/'
+                # if file path regex matches any of the exclude rules, then skip it.
+                skip_file = False
+                for exclude_pattern in self.exclude_patterns:
+                    if len(re.findall(exclude_pattern, os.path.join(clean_root, local_file))) > 0:
+                        _log.info('file: "%s" skipped as it matches exclude rule: "%s"' % (os.path.join(clean_root,local_file), exclude_pattern))
+                        skip_file = True
+                if skip_file:
+                    continue
+                
                 if self.md5:
                     try:
                         import hashlib

@@ -1,6 +1,7 @@
 from cloudprovider import CloudProvider
 import cloudfiles
 import cloudfiles.errors
+import ssl
 from log import Logging
 _log = Logging().log
 

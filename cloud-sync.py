@@ -66,7 +66,7 @@ def setup_config():
                        help='Log Level for File (DEBUG,INFO,WARNING,ERROR,CRITICAL)',
                        default=config_get(cp,'general','file_level','WARNING'))
     general.add_option('-f','--logfile', dest='log_file', help='Log File Name',
-                       default=config_get(cp,'general','log_file','/var/log/cloud-sync.log'))
+                       default=config_get(cp,'general','log_file','./cloud-sync.log'))
     general.add_option('-m','--md5', dest="md5", help="Enable MD5 Comparison",
                        default=config_get(cp,'general','md5',True))
     general.add_option('-T','--threads', dest="numthreads", help="Number of Threads",
@@ -83,12 +83,34 @@ def setup_config():
                    help='Number of Connections to API',
                    default=config_get(cp,'api','connections',1))
     api.add_option('-t','--timeout',dest="timeout",help='API Timeout',
-                   default=config_get(cp,'api','timeout',10))
+                   default=config_get(cp,'api','timeout','10'))
     api.add_option('-n','--servicenet',dest="servicenet",help='Use Servicenet',
                    default=config_get(cp,'api','servicenet',False))
     api.add_option('-z','--useragent',dest="useragent",help='Override Useragent',
                    default=config_get(cp,'api','useragent','com.whmcr.cloudsync'))
+    api.add_option('-S','--settings',dest="settings",help='Import custom settings (from a python file)',
+                   default=config_get(cp,'api','settings_file',False))
+    api.add_option('-X','--exclude',dest="settings",help='path regex to exclude.',
+                   default=config_get(cp,'api','exclude_paths',None))
     (op_results,op_args) = op.parse_args()
+
+    if op_results.settings:
+        print "importing custom settings"
+        settings_module = op_results.settings
+        try:
+            _settings = __import__(settings_module , globals(), locals(), [], -1)
+        except ImportError:
+            print "Could not import module %s" % settings_module
+            raise
+        if hasattr(_settings, 'settings_dict'):
+            # For all items in the settings dictionary, overwrite them in op_results
+            for k,v in _settings.settings_dict.items():
+                setattr(op_results, k, v)    
+        if hasattr(_settings, 'op_args'):
+            op_args = _settings.op_args
+    print op_results
+    print op_args
+
     if len(op_args) != 2:
        op.error("Incorrect number of arguments")
     return (op_results,op_args)
@@ -111,7 +133,7 @@ def setup_source(clouds,op_results,op_args):
         container = op_args[0][8:]
         return {'list': list, 'container': container, 'type': 'swift'}
     else:
-        list = DirectoryList(op_args[0])
+        list = DirectoryList(op_args[0], exclude_patterns=op_results.exclude_paths)
         return {'list': list, 'container': op_args[0], 'type': 'local'}
 def setup_dest(clouds,op_results,op_args):
     if 'swift://' in op_args[1]:
@@ -123,6 +145,7 @@ def setup_dest(clouds,op_results,op_args):
         return {'list': list, 'container': op_args[1], 'type': 'local'}
 def main():
     (op_results,op_args) = setup_config()
+    #import pdb; pdb.set_trace();
     _log = setup_logging(op_results.console_level, op_results.file_level, op_results.log_file)
     for opt, value in op_results.__dict__.items():
          _log.debug('Setting %s is %s' % (opt,str(value)))
@@ -133,7 +156,8 @@ def main():
     source['list'].compare(dest['list'].file_list)
 
     threads =[]
-    for i in op_results.numthreads:
+    # start up the threads
+    for i in range(op_results.numthreads):
         t = Worker()
         threads.append(t)
         t.start()
@@ -156,15 +180,4 @@ def main():
 if __name__ == '__main__':
     q = Queue()
     main()
-
-#q = Queue()
-#q.put({'container': container,'direction': 'put', 'remote': remote, 'local': local})
-#q.put({'container': container,'direction': 'get', 'remote': remote, 'local': local})
-#q.put({'direction': 'kill'})
-#q.put({'direction': 'kill'})
-#threads = []
-#for i in range(5):
-#    threads.append(CSThread())
-#for i in range(5):
-#    threads[i].start()
 
