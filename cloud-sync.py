@@ -122,7 +122,6 @@ def setup_config():
     (op_results, op_args) = op.parse_args()
 
     if op_results.settings:
-        print "importing custom settings"
         settings_module = op_results.settings
         try:
             _settings = __import__(settings_module, globals(), locals(), [],
@@ -137,8 +136,6 @@ def setup_config():
                 setattr(op_results, k, v)
         if hasattr(_settings, 'op_args'):
             op_args = _settings.op_args
-    print op_results
-    print op_args
 
     if len(op_args) != 2:
         op.error("Incorrect number of arguments")
