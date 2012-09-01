@@ -5,18 +5,26 @@ from datetime import datetime
 import re
 _log = Logging().log
 
+class SourceDirectoryDoesNotExistError(Exception):
+    pass
 
 class DirectoryList(FileList):
     def __init__(self, directory, follow=True, md5=True,
-                 exclude_patterns=None):
+                 exclude_patterns=None, must_exist=False):
         self.directory = directory
         self.follow = follow
         self.file_list = {}
         self.md5 = md5
         self.exclude_patterns = exclude_patterns or []
+        self.must_exist = must_exist
         self.updateList()
 
     def updateList(self):
+
+        if self.must_exist and not os.path.exists(os.path.expanduser(
+                                                  self.directory)):
+            raise SourceDirectoryDoesNotExistError
+
         for root, dirs, files in os.walk(self.directory,
                                          followlinks=self.follow):
             for local_file in files:

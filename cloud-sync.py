@@ -163,10 +163,14 @@ def setup_source(clouds, op_results, op_args):
         container = op_args[0][8:]
         return {'list': list, 'container': container, 'type': 'swift'}
     else:
-        list = DirectoryList(op_args[0],
-                             exclude_patterns=op_results.exclude)
-        return {'list': list, 'container': op_args[0], 'type': 'local'}
-
+        try:
+            list = DirectoryList(op_args[0],
+                                 exclude_patterns=op_results.exclude,
+                                 must_exist=True)
+            return {'list': list, 'container': op_args[0], 'type': 'local'}
+        except SourceDirectoryDoesNotExistError:
+            print 'Source %s does not exist.' % op_args[0]
+            sys.exit(1)
 
 def setup_dest(clouds, op_results, op_args):
     if 'swift://' in op_args[1]:
