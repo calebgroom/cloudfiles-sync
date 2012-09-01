@@ -2,6 +2,8 @@ import sys
 from log import Logging
 
 _log = Logging().log
+
+
 class CloudProvider():
     """
     Base class for Cloudproviders
@@ -12,37 +14,42 @@ class CloudProvider():
         """
         _log.critical('Authentication Failure - Exiting')
         sys.exit(1)
+
     def AuthenticationError(self):
         """
         Raised when Authentication Has an error, for an unknown reason
         """
-        _log.critical('Authentication Failure Check your Username/Password/API Details- Exiting')
+        _log.critical('Authentication Failure Check your Username/Password/'
+                      'API Details- Exiting')
         sys.exit(1)
 
-    def NoSuchContainer(self,container_name):
+    def NoSuchContainer(self, container_name):
         """
         Raised when A request for an unknown container occurs
 
         @type container_name: str
         @param container_name: Swift Container Name
         """
-        if container_name == False:
+        if container_name is False:
             _log.warn("Container/Bucket doesn't exist")
         else:
             _log.warn("Container/Bucket doesn't exist - creating")
             self.createContainer(container_name)
+
     def InvalidContainerName(self):
         """
         Raised when a request for a container that has a bad name is made
         """
         _log.critical("Container/Bucket name is invalid - Exiting")
         sys.exit(1)
+
     def InvalidObjectName(self):
         """
         Raised when a request for an invalid object occurs
         """
         _log.warn("File does not exist")
-    def callback(self,done,total):
+
+    def callback(self, done, total):
         """
         This function does nothing more than print out a % completed to INFO
 
@@ -52,18 +59,19 @@ class CloudProvider():
         @param total: Ammount of bytes in total
         """
         try:
-            _log.debug("%d completed of %d - %d%%" %(done,total, int((float(done)/float(total))*100)))
+            _log.debug("%d completed of %d - %d%%" % (done, total,
+                       int((float(done) / float(total)) * 100)))
         except ZeroDivisionError:
-            _log.debug("%d completed of %d - %d%%" %(done,total, int((float(done)/1)*100)))
+            _log.debug("%d completed of %d - %d%%" % (done, total,
+                       int((float(done) / 1) * 100)))
         if done == total:
-            _log.debug("%d completed of %d - %d%%" %(done,total, 100))
-    def callback100(self,remote):
+            _log.debug("%d completed of %d - %d%%" % (done, total, 100))
+
+    def callback100(self, remote):
         """
         This function does nothing more than print out a 100% completed to INFO
 
         @type remote: str
         @param remote: Remote file name
         """
-        _log.info("%s completed" %(remote))
-
-
+        _log.info("%s completed" % remote)

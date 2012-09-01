@@ -1,13 +1,15 @@
 import logging
 
+
 class Logging():
     """
     Our logging class
     """
-    def __init__(self,level='cloud-sync'):
+    def __init__(self, level='cloud-sync'):
         self.log = logging.getLogger('cloud-sync')
 
-    def setup(self,file_name='cloud-sync.log',console_level="CRITICAL",file_level='WARNING'):
+    def setup(self, file_name='cloud-sync.log', console_level="CRITICAL",
+              file_level='WARNING'):
         """
         Creates a logger object
 
@@ -21,8 +23,8 @@ class Logging():
         @param file_level: Level for console output
         """
         self.log.setLevel(logging.DEBUG)
-        formatter = logging.Formatter('%(asctime)s %(name)-12s %(levelname)-8s %(message)s')
-
+        formatter = logging.Formatter('%(asctime)s %(name)-12s '
+                                      '%(levelname)-8s %(message)s')
 
         self.fh = logging.FileHandler(file_name)
         self.fh.setFormatter(formatter)
@@ -34,7 +36,7 @@ class Logging():
         self.ch.setLevel(self.getLevel(console_level))
         self.log.addHandler(self.ch)
 
-    def getLevel(self,level):
+    def getLevel(self, level):
         """
         Return logging.LEVEL
 
