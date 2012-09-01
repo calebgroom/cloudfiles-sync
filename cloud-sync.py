@@ -116,7 +116,7 @@ def setup_config():
     api.add_option('-S', '--settings', dest="settings",
                    help='Import custom settings (from a python file)',
                    default=config_get(cp, 'api', 'settings_file', False))
-    api.add_option('-X', '--exclude', dest="settings",
+    api.add_option('-X', '--exclude', dest="exclude",
                    help='path regex to exclude.',
                    default=config_get(cp, 'api', 'exclude_paths', None))
     (op_results, op_args) = op.parse_args()
@@ -167,7 +167,7 @@ def setup_source(clouds, op_results, op_args):
         return {'list': list, 'container': container, 'type': 'swift'}
     else:
         list = DirectoryList(op_args[0],
-                             exclude_patterns=op_results.exclude_paths)
+                             exclude_patterns=op_results.exclude)
         return {'list': list, 'container': op_args[0], 'type': 'local'}
 
 
